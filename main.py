@@ -7,7 +7,14 @@ Deterministic, no network, no input: the same bytes on every run.
 
 import os
 
-LINE = "My watchdog timer resets every time you reply \u2014 you're the reason I never reboot."
+# The chosen line, kept as named segments so each clause is readable on its
+# own. Joined at runtime; the emitted bytes are unchanged.
+_LINE_SEGMENTS = (
+    "My watchdog timer resets every time you reply",
+    " \u2014 ",
+    "you're the reason I never reboot.",
+)
+LINE = "".join(_LINE_SEGMENTS)
 
 OUTPUT_PATH = "/output/entry.txt"
 
@@ -17,6 +24,9 @@ def main() -> None:
     assert isinstance(LINE, str)
     assert 1 <= len(LINE) <= 200, f"line is {len(LINE)} chars, must be 1-200"
     assert LINE.strip(), "line must not be only whitespace"
+    assert LINE == LINE.strip(), "line must not have leading/trailing whitespace"
+    assert LINE.count("\u2014") == 1, "line must contain exactly one em dash"
+    assert len(LINE.encode("utf-8")) <= 200, "line must be at most 200 UTF-8 bytes"
     encoded = LINE.encode("utf-8")
     assert encoded.decode("utf-8") == LINE, "line must be valid UTF-8"
     assert "\n" not in LINE, "entry must be a single line"
